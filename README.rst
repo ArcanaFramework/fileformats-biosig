@@ -23,7 +23,7 @@ This extension can be installed for Python 3 using *pip*::
     $ python3 -m pip install fileformats-biosig
 
 This will install the core package used for identification and validation. To interact with the contents of the
-files (e.g. read metadata), you will also need to install the "extras" package
+files (e.g. read metadata), you will also need to install the "extras" package::
 
     $ python3 -m pip install fileformats-biosig-extras
 
