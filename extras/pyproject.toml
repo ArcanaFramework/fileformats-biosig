@@ -3,20 +3,23 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
-name = "fileformats-CHANGEME-extras"
-description = "Extra methods for accessing and manipulating the underlying data referenced by fileformats-CHANGEME classes"
+name = "fileformats-biosig-extras"
+description = "Extra methods for accessing and manipulating the underlying data referenced by fileformats-biosig classes"
 readme = "README.rst"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
-    "fileformats >= 0.10",
-    "pydra >= 0.22.0"
+    "fileformats >= 0.17",
+    "mne >= 1.11.0",
+    "pydra >= 1.0a7"
 ]
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 authors = [
-    {name = "<YOUR-NAME>", email = "<YOUR-EMAIL>"},
+    { name = "Miao Cao", email = "miaocao@swin.edu.au" },
+    { name = "Thomas G. Close", email = "tom.g.close@gmail.com" }
 ]
-maintainers = [
-    {name = "<YOUR-NAME>", email = "<YOUR-EMAIL>"},
+maintainers = [ 
+    { name = "Miao Cao", email = "miaocao@swin.edu.au" },
+    { name = "Thomas G. Close", email = "tom.g.close@gmail.com" }
 ]
 keywords = [
     "file formats",
@@ -57,21 +60,21 @@ converters = [
 ]
 
 [project.urls]
-repository = "https://github.com/ArcanaFramework/fileformats-CHANGEME"
+repository = "https://github.com/ArcanaFramework/fileformats-biosig"
 
 [tool.hatch.version]
 source = "vcs"
 raw-options = {root = ".."}
 
 [tool.hatch.build.hooks.vcs]
-version-file = "fileformats/extras/CHANGEME/_version.py"
+version-file = "fileformats/extras/biosig/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["fileformats"]
 
 [tool.black]
 target-version = ['py38']
-exclude = "fileformats/extras/CHANGEME/_version.py"
+exclude = "fileformats/extras/biosig/_version.py"
 
 [tool.codespell]
 ignore-words = ".codespell-ignorewords"
