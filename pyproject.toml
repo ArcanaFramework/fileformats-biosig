@@ -57,7 +57,7 @@ version-file = "fileformats/biosig/_version.py"
 packages = ["fileformats"]
 
 [tool.black]
-target-version = ['py38']
+target-version = ['py311']
 exclude = "fileformats/biosig/_version.py"
 
 [tool.codespell]
@@ -71,7 +71,7 @@ select = "C,E,F,W,B,B950"
 extend-ignore = ['E203', 'E501', 'E129']
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 ignore_missing_imports = true
 strict = true
 namespace_packages = true
