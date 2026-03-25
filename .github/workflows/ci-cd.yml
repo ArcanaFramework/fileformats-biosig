@@ -37,7 +37,7 @@ jobs:
     - name: Disable etelemetry
       run:  echo "NO_ET=TRUE" >> $GITHUB_ENV
     - name: Install system deps
-      run: apt-get install -y liblzma-dev
+      run: apt install -y liblzma-dev
     - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
       uses: actions/setup-python@v2
       with:
