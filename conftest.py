@@ -2,8 +2,9 @@ import os
 import logging
 from pathlib import Path
 import typing as ty
-import tempfile
 import pytest
+
+import mne.datasets
 
 # Set DEBUG logging for unittests
 
@@ -33,7 +34,41 @@ if os.getenv("_PYTEST_RAISE", "0") != "0":
         raise excinfo.value
 
 
-@pytest.fixture
-def work_dir() -> Path:
-    work_dir = tempfile.mkdtemp()
-    return Path(work_dir)
+# ------------------------------
+# Session-scoped fixtures
+# ------------------------------
+
+
+@pytest.fixture(scope="session")
+def sample_data_path() -> Path:
+    return Path(mne.datasets.sample.data_path())
+
+
+@pytest.fixture(scope="session")
+def testing_data_path() -> Path:
+    return Path(mne.datasets.testing.data_path())
+
+
+@pytest.fixture(scope="session")
+def fif_path(sample_data_path) -> Path:
+    return sample_data_path / "MEG" / "sample" / "sample_audvis_raw.fif"
+
+
+@pytest.fixture(scope="session")
+def edf_path() -> Path:
+    return Path(mne.datasets.eegbci.load_data(subject=1, runs=[1])[0])
+
+
+@pytest.fixture(scope="session")
+def bv_vhdr_path(testing_data_path) -> Path:
+    return testing_data_path / "BrainVision" / "test.vhdr"
+
+
+@pytest.fixture(scope="session")
+def ctf_ds_path(testing_data_path) -> Path:
+    return testing_data_path / "CTF" / "testdata_ctf.ds"
+
+
+@pytest.fixture(scope="session")
+def kit_sqd_path(testing_data_path) -> Path:
+    return testing_data_path / "KIT" / "test.sqd"
