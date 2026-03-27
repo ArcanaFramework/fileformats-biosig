@@ -11,15 +11,11 @@ Email:
 
 from fileformats.core import validated_property, mtime_cached_property
 from fileformats.core.exceptions import FormatMismatchError
-from fileformats.generic import FileSet, BinaryFile, UnicodeFile
+from fileformats.generic import BinaryFile, UnicodeFile
 from fileformats.core.mixin import WithMagicNumber, WithAdjacentFiles
 from fileformats.application import Gzip
 
-
-class Biosig(FileSet):
-    """Base class for biophysical time-series recordings"""
-
-    pass
+from .base import Biosig
 
 
 class Eeg(Biosig):
@@ -39,10 +35,10 @@ class Fif(WithMagicNumber, BinaryFile, Biosig):
 
     ext = ".fif"
     # FIF file magic number (hex identifier, from MNE official documentation)
-    magic_number = b"\x46\x49\x46\x32"  # "FIF2"
+    magic_number: str | bytes = b"\x46\x49\x46\x32"  # "FIF2"
 
 
-class FifGz(Gzip[Fif], Fif):
+class FifGz(Gzip[Fif], Fif):  # type: ignore[type-arg, misc]
     """Gzip-compressed MNE FIF format"""
 
     ext = ".fif.gz"
@@ -57,7 +53,6 @@ class Edf(WithMagicNumber, BinaryFile, Eeg):
     extensions = ".edf"
     # First 8 bytes are "0       " (version field)
     magic_number = b"\x30\x20\x20\x20\x20\x20\x20\x20"
-    mime_type = "application/x-eeg-edf"
 
     @mtime_cached_property
     def header(self) -> str:
@@ -67,7 +62,7 @@ class Edf(WithMagicNumber, BinaryFile, Eeg):
 
     @validated_property
     def local_recording_identification(self) -> list[str]:
-        parts = self.header[88:168].split()
+        parts: list[str] = self.header[88:168].split()
         if len(parts) != 5:
             raise FormatMismatchError(
                 'Unrecognised "local recording identification" string, '
@@ -77,7 +72,7 @@ class Edf(WithMagicNumber, BinaryFile, Eeg):
 
     @validated_property
     def local_patient_identification(self) -> list[str]:
-        parts = self.header[8:88].split()
+        parts: list[str] = self.header[8:88].split()
         if len(parts) != 4:
             raise FormatMismatchError(
                 'Unrecognised "local patient identification" string, '
@@ -87,7 +82,8 @@ class Edf(WithMagicNumber, BinaryFile, Eeg):
 
     @property
     def _edf_type(self) -> str:
-        return self.header[192:236].strip()
+        edf_type: str = self.header[192:236].strip()
+        return edf_type
 
     @validated_property
     def edf_type(self) -> str:
@@ -130,7 +126,6 @@ class BrainVisionHeader(WithMagicNumber, UnicodeFile, Biosig):
     ext = ".vhdr"
     # First 12 bytes of "Brain Vision Data Exchange Header File Version 1.0\r\n"
     magic_number = b"Brain Vision"
-    mime_type = "application/x-ephys-brainvision-header"
 
 
 class BrainVisionMarker(WithMagicNumber, UnicodeFile, Biosig):
@@ -142,7 +137,6 @@ class BrainVisionMarker(WithMagicNumber, UnicodeFile, Biosig):
     ext = ".vmrk"
     # First 12 bytes of "Brain Vision Data Exchange Marker File, Version 1.0\r\n"
     magic_number = b"Brain Vision"
-    mime_type = "application/x-ephys-brainvision-marker"
 
 
 class BrainVision(WithAdjacentFiles, BinaryFile, Biosig):
@@ -152,7 +146,6 @@ class BrainVision(WithAdjacentFiles, BinaryFile, Biosig):
     """
 
     ext = ".eeg"
-    mime_type = "application/x-ephys-brainvision"
 
     @validated_property
     def header_file(self) -> BrainVisionHeader:

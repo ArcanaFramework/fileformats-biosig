@@ -10,8 +10,8 @@ Email:
 - miaocao@swin.edu.au
 """
 
+from .base import Biosig
 from .eeg import (
-    Biosig,
     Eeg,
     Fif,
     FifGz,

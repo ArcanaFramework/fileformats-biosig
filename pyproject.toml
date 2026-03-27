@@ -13,7 +13,7 @@ authors = [
     { name = "Miao Cao", email = "miaocao@swin.edu.au" },
     { name = "Thomas G. Close", email = "tom.g.close@gmail.com" }
 ]
-maintainers = [ 
+maintainers = [
     { name = "Miao Cao", email = "miaocao@swin.edu.au" },
     { name = "Thomas G. Close", email = "tom.g.close@gmail.com" }
 ]
@@ -57,7 +57,7 @@ version-file = "fileformats/biosig/_version.py"
 packages = ["fileformats"]
 
 [tool.black]
-target-version = ['py311']
+target-version = ['py310']
 exclude = "fileformats/biosig/_version.py"
 
 [tool.codespell]

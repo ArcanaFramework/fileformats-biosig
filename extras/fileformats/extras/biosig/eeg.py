@@ -1,10 +1,13 @@
+import os
 import configparser
 import typing as ty
+import tempfile
+from pathlib import Path
 
 import mne.io
 
 from fileformats.core import extra_implementation, FileSet
-from fileformats.biosig import BrainVision, Edf, EdfPlus, Fif, FifGz
+from fileformats.biosig import Biosig, BrainVision, Edf, EdfPlus, Fif, FifGz
 
 from .utils import _info_to_metadata
 
@@ -48,7 +51,26 @@ def brain_vision_read_metadata(bv: BrainVision) -> dict[str, ty.Any]:
     }
 
 
-def _parse_edf_header(path: str) -> dict[str, ty.Any]:
+@extra_implementation(Biosig.deidentify)
+def brain_vision_deidentify(
+    brain_vision: BrainVision,
+    out_dir: ty.Optional[Path] = None,
+    new_stem: ty.Optional[str] = None,
+    copy_mode: FileSet.CopyMode = FileSet.CopyMode.copy,
+) -> BrainVision:
+    if out_dir is None:
+        out_dir = Path(tempfile.mkdtemp())
+    out_dir.mkdir(parents=True, exist_ok=True)
+    deidentified = brain_vision.copy(out_dir, new_stem=new_stem, mode=copy_mode)
+    raise NotImplementedError(
+        "need to implemnent deidentification techniques and a save method. If there is a standard "
+        "form to load the data into (e.g. MNE) it would be best to implement FileSet.load and FileSet.save"
+        "methods"
+    )
+    return deidentified
+
+
+def _parse_edf_header(path: os.PathLike[str]) -> dict[str, ty.Any]:
     """
     Parse EDF/EDF+ header bytes directly for patient and recording fields
     that MNE may not surface via raw.info.
@@ -88,7 +110,7 @@ def _parse_edf_header(path: str) -> dict[str, ty.Any]:
     }
 
 
-def _parse_vhdr(path: str) -> dict[str, ty.Any]:
+def _parse_vhdr(path: os.PathLike[str]) -> dict[str, ty.Any]:
     """
     Parse a BrainVision .vhdr file (INI format) for fields not exposed by MNE.
     Extracts acquisition settings and the free-text Comment section.
@@ -100,7 +122,11 @@ def _parse_vhdr(path: str) -> dict[str, ty.Any]:
     ini_lines = [line for line in lines if not line.startswith("Brain Vision")]
     parser.read_string("".join(ini_lines))
 
-    def get(section, key, fallback=None):
+    def get(
+        section: ty.Any,
+        key: str,
+        fallback: ty.Any = None,
+    ) -> ty.Any:
         try:
             return parser.get(section, key)
         except (configparser.NoSectionError, configparser.NoOptionError):
