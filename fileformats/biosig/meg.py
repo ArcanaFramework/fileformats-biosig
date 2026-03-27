@@ -15,7 +15,7 @@ from fileformats.core.exceptions import FormatMismatchError
 from fileformats.generic import Directory, File, BinaryFile, UnicodeFile
 from fileformats.application import Xml
 
-from .eeg import Biosig
+from .base import Biosig
 
 
 # ------------------------------
@@ -107,21 +107,22 @@ class Kit(WithAdjacentFiles, Meg, BinaryFile):
         Looks for same prefix with .mrk extension within the same directory
         """
         try:
-            return self.select_by_ext(KitMark)
+            mrk_path = self.select_by_ext(KitMark)
         except FormatMismatchError:
             for cand in self.marker_generic_names:
                 mrk_path = self.parent / cand
                 if mrk_path.exists():
-                    return mrk_path
-
-            raise FormatMismatchError(
-                f"No .mrk marker file found for KIT MEG data {self}\n"
-            )
+                    break
+            else:
+                raise FormatMismatchError(
+                    f"No .mrk marker file found for KIT MEG data {self}\n"
+                )
+        return KitMark(mrk_path)
 
     @property
     def head_position_file(self) -> KitHeadPosition | None:
         try:
-            return self.select_by_ext(KitHeadPosition)
+            return KitHeadPosition(self.select_by_ext(KitHeadPosition))
         except FormatMismatchError as e:
             if e.args[0].startswith("No matching files"):
                 return None
@@ -130,7 +131,7 @@ class Kit(WithAdjacentFiles, Meg, BinaryFile):
     @property
     def sensor_info_file(self) -> KitSensorInfo | None:
         try:
-            return self.select_by_ext(KitSensorInfo)
+            return KitSensorInfo(self.select_by_ext(KitSensorInfo))
         except FormatMismatchError as e:
             if e.args[0].startswith("No matching files"):
                 return None
