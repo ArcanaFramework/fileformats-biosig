@@ -14,26 +14,20 @@ from fileformats.biosig import (
     BrainVision,
     BrainVisionHeader,
     BrainVisionMarker,
-    Edf,
-    Fif,
+    EdfPlus,
 )
 
 # ------------------------------
 # EEG: FIF
 # ------------------------------
 
-
-def test_fif_instantiate(fif_path):
-    Fif(fif_path)
-
-
 # ------------------------------
 # EEG: EDF
 # ------------------------------
 
 
-def test_edf_instantiate(edf_path):
-    Edf(edf_path)
+def test_edf_plus_instantiate(edf_plus_path):
+    EdfPlus(edf_plus_path)
 
 
 # ------------------------------

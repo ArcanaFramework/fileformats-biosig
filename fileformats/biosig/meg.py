@@ -9,6 +9,7 @@ Email:
 - miaocao@swin.edu.au
 """
 
+import struct
 from fileformats.core import validated_property
 from fileformats.core.mixin import WithAdjacentFiles, WithMagicNumber
 from fileformats.core.exceptions import FormatMismatchError
@@ -26,6 +27,32 @@ class Meg(Biosig):
     Base class for MEG data formats
     All specific MEG formats inherit from this class with unified validation logic
     """
+
+
+# ------------------------------
+# Implementation of Specific EEG Formats
+# ------------------------------
+class Fif(BinaryFile, Meg):
+    """
+    MNE FIF format (standard format for NeuroMag/MEGIN MEG/EEG devices)
+    Most commonly used binary format, supports compression (.fif.gz)
+    """
+
+    ext = ".fif"
+
+    @validated_property
+    def fiff_header(self) -> None:
+        # FIFF files begin with a tag stream; the first tag must be FIFF_FILE_ID (kind=100)
+        # with data type FIFFT_ID_STRUCT (dtype=31), encoded as big-endian uint32 pairs.
+        data = self.read_contents(8)
+        if len(data) < 8:
+            raise FormatMismatchError(f"File too short to be a valid FIFF file: {self}")
+        kind, dtype = struct.unpack(">II", data)
+        if kind != 100 or dtype != 31:
+            raise FormatMismatchError(
+                f"First FIFF tag has kind={kind}, dtype={dtype}; expected kind=100 "
+                f"(FIFF_FILE_ID) and dtype=31 (FIFFT_ID_STRUCT) in {self}"
+            )
 
 
 class CtfMeg4(WithMagicNumber, BinaryFile, Meg):
@@ -47,7 +74,7 @@ class CtfRes4(WithMagicNumber, BinaryFile, Meg):
 
     ext = ".res4"
     # First 8 bytes: "MEG41RS\0" (CTF resource file version identifier)
-    magic_number = b"MEG41RS\x00"
+    magic_number = b"MEG42RS\x00"
 
 
 class CtfInfo(Xml, Meg):
@@ -89,8 +116,7 @@ class Kit(WithAdjacentFiles, Meg, BinaryFile):
     KIT/RIKEN (Ricon) MEG format (directory-based)
     Required files:
     - Main data file (.sqd or .con)
-    - Marker file (.mrk)
-    Optional files: .elp (head position), .hsj (sensor info)
+    Optional files: .mrk (marker/coregistration), .elp (head position), .hsj (sensor info)
     """
 
     ext = ".sqd"
@@ -98,26 +124,18 @@ class Kit(WithAdjacentFiles, Meg, BinaryFile):
 
     marker_generic_names = ("marker.mrk", "markers.mrk", "kit.mrk")
 
-    # meg_chs = mne.pick_types(raw.info, meg=True, eeg=False)
-
-    @validated_property
-    def mark_file(self) -> KitMark:
-        """
-        Helper method: Find corresponding .mrk marker file for KIT/RIKEN data
-        Looks for same prefix with .mrk extension within the same directory
-        """
+    @property
+    def mark_file(self) -> KitMark | None:
         try:
             mrk_path = self.select_by_ext(KitMark)
+            return KitMark(mrk_path)
         except FormatMismatchError:
-            for cand in self.marker_generic_names:
-                mrk_path = self.parent / cand
-                if mrk_path.exists():
-                    break
-            else:
-                raise FormatMismatchError(
-                    f"No .mrk marker file found for KIT MEG data {self}\n"
-                )
-        return KitMark(mrk_path)
+            pass
+        for cand in self.marker_generic_names:
+            mrk_path = self.parent / cand
+            if mrk_path.exists():
+                return KitMark(mrk_path)
+        return None
 
     @property
     def head_position_file(self) -> KitHeadPosition | None:

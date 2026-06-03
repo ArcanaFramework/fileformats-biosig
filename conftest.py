@@ -50,25 +50,25 @@ def testing_data_path() -> Path:
 
 
 @pytest.fixture(scope="session")
-def fif_path(sample_data_path) -> Path:
+def fif_path(sample_data_path: Path) -> Path:
     return sample_data_path / "MEG" / "sample" / "sample_audvis_raw.fif"
 
 
 @pytest.fixture(scope="session")
-def edf_path() -> Path:
-    return Path(mne.datasets.eegbci.load_data(subject=1, runs=[1])[0])
+def edf_plus_path() -> Path:
+    return Path(mne.datasets.eegbci.load_data(subjects=1, runs=[1])[0])
 
 
 @pytest.fixture(scope="session")
-def bv_vhdr_path(testing_data_path) -> Path:
-    return testing_data_path / "BrainVision" / "test.vhdr"
+def bv_vhdr_path(testing_data_path: Path) -> Path:
+    return testing_data_path / "BrainVision" / "test_NO.vhdr"
 
 
 @pytest.fixture(scope="session")
-def ctf_ds_path(testing_data_path) -> Path:
+def ctf_ds_path(testing_data_path: Path) -> Path:
     return testing_data_path / "CTF" / "testdata_ctf.ds"
 
 
 @pytest.fixture(scope="session")
-def kit_sqd_path(testing_data_path) -> Path:
-    return testing_data_path / "KIT" / "test.sqd"
+def kit_sqd_path(testing_data_path: Path) -> Path:
+    return testing_data_path / "KIT" / "MQKIT_125_2sec.con"

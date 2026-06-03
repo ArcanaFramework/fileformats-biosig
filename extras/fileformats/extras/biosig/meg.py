@@ -1,56 +1,43 @@
+import os
 import typing as ty
-import xml.etree.ElementTree as ET
 from pathlib import Path
+import tempfile
 
 import mne.io
 
 from fileformats.core import extra_implementation, FileSet
-from fileformats.biosig import Ctf, Kit
-from .utils import _info_to_metadata
+from fileformats.biosig import Ctf, Kit, Fif
+from fileformats.biosig.base import Biosig
+
+from .utils import mne_deidentify
 
 
 @extra_implementation(FileSet.read_metadata)
 def ctf_read_metadata(ctf: Ctf, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
-    raw = mne.io.read_raw_ctf(ctf.fspath, preload=False, verbose=False)
-    return {
-        **_info_to_metadata(raw.info),
-        **_parse_infods(Path(ctf.fspath)),
-    }
-
-
-# elif ext in [".sqd", ".con"]:  # KIT/RIKEN main data files
-#                 # For KIT format, we need to find the marker file (.mrk) in the same directory
+    return mne.io.read_raw_ctf(ctf, preload=False, verbose=False).info.to_json_dict()  # type: ignore[no-any-return]
 
 
 @extra_implementation(FileSet.read_metadata)
 def kit_read_metadata(kit: Kit, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
-    mrk_path = kit._find_kit_mrk_file()  # type: ignore[attr-defined]
-    return mne.io.read_raw_kit(kit, mrk=mrk_path, verbose=False)  # type: ignore[no-any-return]
+    return mne.io.read_raw_kit(kit, mrk=kit.mark_file, verbose=False).info.to_json_dict()  # type: ignore[no-any-return]
 
 
-def _parse_infods(ds_path: Path) -> dict[str, ty.Any]:
-    """
-    Parse the .infods XML sidecar in a CTF .ds directory for metadata that
-    MNE does not surface via raw.info (subject name, operator, study description).
-    Returns an empty dict if no .infods file is present.
-    """
-    infods_files = list(ds_path.glob("*.infods"))
-    if not infods_files:
-        return {}
-    tree = ET.parse(infods_files[0])
-    root = tree.getroot()
+@extra_implementation(FileSet.read_metadata)
+def fif_read_metadata(fif: Fif, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
+    return mne.io.read_raw_fif(fif, preload=False, verbose=False).info.to_json_dict()  # type: ignore[no-any-return]
 
-    def find(tag: str) -> str | None:
-        el = root.find(f".//{tag}")
-        return el.text.strip() if el is not None and el.text else None
 
-    return {
-        "subject_id": find("SUBJECTID"),
-        "subject_name": find("SUBJECTNAME"),
-        "operator": find("OPERATOR"),
-        "institution": find("INSTITUTION"),
-        "study_description": find("STUDYDESCRIPTION"),
-        "run_description": find("RUNDESCRIPTION"),
-        "acquisition_datetime": find("ACQUISITIONDATETIME"),
-        "date": find("DATE"),
-    }
+@extra_implementation(Biosig.deidentify)
+def fif_deidentify(
+    fif: Fif,
+    spec: ty.Any = None,
+    out_dir: os.PathLike[str] | None = None,
+) -> tuple[Fif, dict[str, ty.Any]]:
+    out_dir = Path(tempfile.mkdtemp() if out_dir is None else out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    raw = mne.io.read_raw_fif(fif, preload=True, verbose=False)
+    deidentified_info, reid = mne_deidentify(raw, spec)
+    raw.info = deidentified_info
+    deid_fspath = out_dir / "meg-signals.fif"
+    raw.save(deid_fspath, overwrite=True)
+    return Fif(deid_fspath), reid
