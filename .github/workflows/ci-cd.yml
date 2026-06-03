@@ -57,7 +57,9 @@ jobs:
         restore-keys: |
           mne-data-
     - name: Download MNE datasets
-      run: python -c "import mne; mne.datasets.testing.data_path(); mne.datasets.sample.data_path(); mne.datasets.eegbci.load_data(subjects=1, runs=[1])"
+      run: |
+        mkdir $HOME/mne_data
+        python -c "import mne; mne.datasets.testing.data_path(); mne.datasets.sample.data_path(); mne.datasets.eegbci.load_data(subjects=1, runs=[1])"
     # - name: MyPy
     #   run: mypy --install-types --non-interactive  --no-warn-unused-ignores .
     - name: Pytest
