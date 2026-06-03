@@ -10,7 +10,7 @@ from .utils import _info_to_metadata
 
 
 @extra_implementation(FileSet.read_metadata)
-def ctf_read_metadata(ctf: Ctf) -> dict[str, ty.Any]:
+def ctf_read_metadata(ctf: Ctf, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
     raw = mne.io.read_raw_ctf(ctf.fspath, preload=False, verbose=False)
     return {
         **_info_to_metadata(raw.info),
@@ -23,9 +23,9 @@ def ctf_read_metadata(ctf: Ctf) -> dict[str, ty.Any]:
 
 
 @extra_implementation(FileSet.read_metadata)
-def kit_read_metadata(kit: Kit) -> dict[str, ty.Any]:
-    mrk_path = kit._find_kit_mrk_file()
-    return mne.io.read_raw_kit(kit, mrk=mrk_path, verbose=False)
+def kit_read_metadata(kit: Kit, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
+    mrk_path = kit._find_kit_mrk_file()  # type: ignore[attr-defined]
+    return mne.io.read_raw_kit(kit, mrk=mrk_path, verbose=False)  # type: ignore[no-any-return]
 
 
 def _parse_infods(ds_path: Path) -> dict[str, ty.Any]:

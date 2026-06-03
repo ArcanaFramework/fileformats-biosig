@@ -13,19 +13,19 @@ from .utils import _info_to_metadata
 
 
 @extra_implementation(FileSet.read_metadata)
-def fif_read_metadata(fif: Fif) -> dict[str, ty.Any]:
+def fif_read_metadata(fif: Fif, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
     raw = mne.io.read_raw_fif(fif.fspath, preload=False, verbose=False)
     return _info_to_metadata(raw.info)
 
 
 @extra_implementation(FileSet.read_metadata)
-def fif_gz_read_metadata(fif: FifGz) -> dict[str, ty.Any]:
+def fif_gz_read_metadata(fif: FifGz, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
     raw = mne.io.read_raw_fif(fif.fspath, preload=False, verbose=False)
     return _info_to_metadata(raw.info)
 
 
 @extra_implementation(FileSet.read_metadata)
-def edf_read_metadata(edf: Edf) -> dict[str, ty.Any]:
+def edf_read_metadata(edf: Edf, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
     raw = mne.io.read_raw_edf(edf.fspath, preload=False, verbose=False)
     return {
         **_info_to_metadata(raw.info),
@@ -34,7 +34,7 @@ def edf_read_metadata(edf: Edf) -> dict[str, ty.Any]:
 
 
 @extra_implementation(FileSet.read_metadata)
-def edf_plus_read_metadata(edf: EdfPlus) -> dict[str, ty.Any]:
+def edf_plus_read_metadata(edf: EdfPlus, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
     raw = mne.io.read_raw_edf(edf.fspath, preload=False, verbose=False)
     return {
         **_info_to_metadata(raw.info),
@@ -43,7 +43,9 @@ def edf_plus_read_metadata(edf: EdfPlus) -> dict[str, ty.Any]:
 
 
 @extra_implementation(FileSet.read_metadata)
-def brain_vision_read_metadata(bv: BrainVision) -> dict[str, ty.Any]:
+def brain_vision_read_metadata(
+    bv: BrainVision, **kwargs: ty.Any
+) -> ty.Mapping[str, ty.Any]:
     raw = mne.io.read_raw_brainvision(bv.header_file, preload=False, verbose=False)
     return {
         **_info_to_metadata(raw.info),
@@ -56,7 +58,7 @@ def brain_vision_deidentify(
     brain_vision: BrainVision,
     spec: ty.Any = None,
     out_dir: os.PathLike[str] | None = None,
-) -> BrainVision:
+) -> tuple[BrainVision, dict[str, ty.Any]]:
     if out_dir is None:
         out_dir = Path(tempfile.mkdtemp())
     Path(out_dir).mkdir(parents=True, exist_ok=True)
