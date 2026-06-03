@@ -54,14 +54,13 @@ def brain_vision_read_metadata(bv: BrainVision) -> dict[str, ty.Any]:
 @extra_implementation(Biosig.deidentify)
 def brain_vision_deidentify(
     brain_vision: BrainVision,
-    out_dir: ty.Optional[Path] = None,
-    new_stem: ty.Optional[str] = None,
-    copy_mode: FileSet.CopyMode = FileSet.CopyMode.copy,
+    spec: ty.Any = None,
+    out_dir: os.PathLike[str] | None = None,
 ) -> BrainVision:
     if out_dir is None:
         out_dir = Path(tempfile.mkdtemp())
-    out_dir.mkdir(parents=True, exist_ok=True)
-    deidentified = brain_vision.copy(out_dir, new_stem=new_stem, mode=copy_mode)
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    deidentified = brain_vision.copy(Path(out_dir))
     raise NotImplementedError(
         "need to implemnent deidentification techniques and a save method. If there is a standard "
         "form to load the data into (e.g. MNE) it would be best to implement FileSet.load and FileSet.save"
