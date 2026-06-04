@@ -1,7 +1,7 @@
 FileFormats Extension - biosig
 ====================================
-.. image:: https://github.com/arcanaframework/fileformats-biosig/actions/workflows/tests.yml/badge.svg
-    :target: https://github.com/arcanaframework/fileformats-biosig/actions/workflows/tests.yml
+.. image:: https://github.com/arcanaframework/fileformats-biosig/actions/workflows/ci-cd.yml/badge.svg
+    :target: https://github.com/arcanaframework/fileformats-biosig/actions/workflows/ci-cd.yml
 .. image:: https://codecov.io/gh/arcanaframework/fileformats-biosig/branch/main/graph/badge.svg?token=UIS0OGPST7
     :target: https://codecov.io/gh/arcanaframework/fileformats-biosig
 .. image:: https://img.shields.io/github/stars/ArcanaFramework/fileformats-biosig.svg
