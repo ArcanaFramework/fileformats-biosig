@@ -55,8 +55,6 @@ jobs:
       with:
         path: ~/mne_data
         key: mne-data-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
-        restore-keys: |
-          mne-data-
     - name: Download MNE datasets
       if: steps.cache-mne-data.outputs.cache-hit != 'true'
       run: |
