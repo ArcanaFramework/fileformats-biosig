@@ -103,7 +103,7 @@ jobs:
       run: python3 -m build ${{ matrix.pkg[1] }}
     - name: Check distributions
       run: twine check ${{ matrix.pkg[1] }}/dist/*
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v7
       with:
         name: built-${{ matrix.pkg[0] }}
         path: ${{ matrix.pkg[1] }}/dist
@@ -113,7 +113,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download build
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v7
       with:
         name: built-main
         path: dist
@@ -135,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download build
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v7
       with:
         name: built-extras
         path: dist
