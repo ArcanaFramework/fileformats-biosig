@@ -5,69 +5,73 @@ import tempfile
 from pathlib import Path
 
 import mne.io
+import mne.export
 
 from fileformats.core import extra_implementation, FileSet
-from fileformats.biosig import Biosig, BrainVision, Edf, EdfPlus, Fif, FifGz
+from fileformats.biosig import Biosig, BrainVision, Edf, EdfPlus
 
-from .utils import _info_to_metadata
-
-
-@extra_implementation(FileSet.read_metadata)
-def fif_read_metadata(fif: Fif) -> dict[str, ty.Any]:
-    raw = mne.io.read_raw_fif(fif.fspath, preload=False, verbose=False)
-    return _info_to_metadata(raw.info)
+from .utils import mne_deidentify
 
 
 @extra_implementation(FileSet.read_metadata)
-def fif_gz_read_metadata(fif: FifGz) -> dict[str, ty.Any]:
-    raw = mne.io.read_raw_fif(fif.fspath, preload=False, verbose=False)
-    return _info_to_metadata(raw.info)
-
-
-@extra_implementation(FileSet.read_metadata)
-def edf_read_metadata(edf: Edf) -> dict[str, ty.Any]:
-    raw = mne.io.read_raw_edf(edf.fspath, preload=False, verbose=False)
+def edf_read_metadata(edf: Edf, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
+    raw = mne.io.read_raw_edf(edf, preload=False, verbose=False)
     return {
-        **_info_to_metadata(raw.info),
-        **_parse_edf_header(edf.fspath),
+        **raw.info.to_json_dict(),
+        **_parse_edf_header(edf),
     }
 
 
 @extra_implementation(FileSet.read_metadata)
-def edf_plus_read_metadata(edf: EdfPlus) -> dict[str, ty.Any]:
-    raw = mne.io.read_raw_edf(edf.fspath, preload=False, verbose=False)
+def edf_plus_read_metadata(edf: EdfPlus, **kwargs: ty.Any) -> ty.Mapping[str, ty.Any]:
+    raw = mne.io.read_raw_edf(edf, preload=False, verbose=False)
     return {
-        **_info_to_metadata(raw.info),
-        **_parse_edf_header(edf.fspath),
+        **raw.info.to_json_dict(),
+        **_parse_edf_header(edf),
     }
 
 
 @extra_implementation(FileSet.read_metadata)
-def brain_vision_read_metadata(bv: BrainVision) -> dict[str, ty.Any]:
+def brain_vision_read_metadata(
+    bv: BrainVision, **kwargs: ty.Any
+) -> ty.Mapping[str, ty.Any]:
     raw = mne.io.read_raw_brainvision(bv.header_file, preload=False, verbose=False)
     return {
-        **_info_to_metadata(raw.info),
+        **raw.info.to_json_dict(),
         **_parse_vhdr(bv.header_file),
     }
 
 
 @extra_implementation(Biosig.deidentify)
-def brain_vision_deidentify(
-    brain_vision: BrainVision,
-    out_dir: ty.Optional[Path] = None,
-    new_stem: ty.Optional[str] = None,
-    copy_mode: FileSet.CopyMode = FileSet.CopyMode.copy,
-) -> BrainVision:
-    if out_dir is None:
-        out_dir = Path(tempfile.mkdtemp())
+def edf_deidentify(
+    edf: Edf,
+    spec: ty.Any = None,
+    out_dir: os.PathLike[str] | None = None,
+) -> tuple[Edf, dict[str, ty.Any]]:
+    out_dir = Path(tempfile.mkdtemp() if out_dir is None else out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    deidentified = brain_vision.copy(out_dir, new_stem=new_stem, mode=copy_mode)
-    raise NotImplementedError(
-        "need to implemnent deidentification techniques and a save method. If there is a standard "
-        "form to load the data into (e.g. MNE) it would be best to implement FileSet.load and FileSet.save"
-        "methods"
-    )
-    return deidentified
+    raw = mne.io.read_raw_edf(edf, preload=True, verbose=False)
+    deidentified_info, reid = mne_deidentify(raw, spec)
+    raw.info = deidentified_info
+    deid_fspath = out_dir / "eeg.edf"
+    mne.export.export_raw(deid_fspath, raw, fmt="edf", overwrite=True)
+    return type(edf)(deid_fspath), reid
+
+
+@extra_implementation(Biosig.deidentify)
+def brain_vision_deidentify(
+    bv: BrainVision,
+    spec: ty.Any = None,
+    out_dir: os.PathLike[str] | None = None,
+) -> tuple[BrainVision, dict[str, ty.Any]]:
+    out_dir = Path(tempfile.mkdtemp() if out_dir is None else out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    raw = mne.io.read_raw_brainvision(bv.header_file, preload=True, verbose=False)
+    deidentified_info, reid = mne_deidentify(raw, spec)
+    raw.info = deidentified_info
+    deid_vhdr = out_dir / "eeg.vhdr"
+    mne.export.export_raw(deid_vhdr, raw, fmt="brainvision", overwrite=True)
+    return BrainVision(out_dir / "eeg.eeg"), reid
 
 
 def _parse_edf_header(path: os.PathLike[str]) -> dict[str, ty.Any]:
@@ -117,7 +121,7 @@ def _parse_vhdr(path: os.PathLike[str]) -> dict[str, ty.Any]:
     """
     parser = configparser.RawConfigParser()
     # vhdr files start with a magic line before the first INI section — skip it
-    with open(path, encoding="utf-8", errors="replace") as f:
+    with open(path, encoding="utf-8-sig", errors="replace") as f:
         lines = f.readlines()
     ini_lines = [line for line in lines if not line.startswith("Brain Vision")]
     parser.read_string("".join(ini_lines))

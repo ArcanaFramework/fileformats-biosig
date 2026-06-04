@@ -25,6 +25,7 @@ jobs:
         shell: bash -l {0}
     env:
       PIP_BREAK_SYSTEM_PACKAGES: 1
+      MNE_DATA: ~/mne_data
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -49,18 +50,26 @@ jobs:
     - name: Install Package
       run: python3 -m pip install -e .[test] -e ./extras[test]
     - name: Cache MNE datasets
+      id: cache-mne-data
       uses: actions/cache@v4
       with:
         path: ~/mne_data
         key: mne-data-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
-        restore-keys: |
-          mne-data-
+    - name: Download MNE datasets
+      if: steps.cache-mne-data.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p $HOME/mne_data
+        python -c "import mne; mne.datasets.testing.data_path(); mne.datasets.sample.data_path()"
+    - name: Download EEGBCI data
+      if: steps.cache-mne-data.outputs.cache-hit != 'true'
+      continue-on-error: true
+      run: python -c "import mne; mne.datasets.eegbci.load_data(subjects=1, runs=[1], update_path=True)"
     # - name: MyPy
     #   run: mypy --install-types --non-interactive  --no-warn-unused-ignores .
     - name: Pytest
       run: pytest -vvs --cov fileformats --cov-config .coveragerc --cov-report xml .
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -92,7 +101,7 @@ jobs:
       run: python3 -m build ${{ matrix.pkg[1] }}
     - name: Check distributions
       run: twine check ${{ matrix.pkg[1] }}/dist/*
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v7
       with:
         name: built-${{ matrix.pkg[0] }}
         path: ${{ matrix.pkg[1] }}/dist
@@ -102,7 +111,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download build
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v7
       with:
         name: built-main
         path: dist
@@ -124,7 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download build
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v7
       with:
         name: built-extras
         path: dist

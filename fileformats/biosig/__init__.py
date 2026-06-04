@@ -13,8 +13,6 @@ Email:
 from .base import Biosig
 from .eeg import (
     Eeg,
-    Fif,
-    FifGz,
     Edf,
     EdfPlus,
     BrainVisionHeader,
@@ -27,6 +25,7 @@ from .meg import (
     CtfRes4,
     CtfInfo,
     Ctf,
+    Fif,
     KitMark,
     KitHeadPosition,
     KitSensorInfo,

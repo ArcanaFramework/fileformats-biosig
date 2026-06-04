@@ -10,7 +10,7 @@ Email:
 - miaocao@swin.edu.au
 """
 
-from fileformats.biosig import Ctf, CtfInfo, CtfMeg4, CtfRes4, Kit
+from fileformats.biosig import Ctf, CtfInfo, CtfMeg4, CtfRes4, Kit, Fif
 
 # ------------------------------
 # MEG: CTF
@@ -19,6 +19,10 @@ from fileformats.biosig import Ctf, CtfInfo, CtfMeg4, CtfRes4, Kit
 
 def test_ctf_instantiate(ctf_ds_path):
     Ctf(ctf_ds_path)
+
+
+def test_fif_instantiate(fif_path):
+    Fif(fif_path)
 
 
 def test_ctf_meg4_instantiate(ctf_ds_path):

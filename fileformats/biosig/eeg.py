@@ -13,7 +13,6 @@ from fileformats.core import validated_property, mtime_cached_property
 from fileformats.core.exceptions import FormatMismatchError
 from fileformats.generic import BinaryFile, UnicodeFile
 from fileformats.core.mixin import WithMagicNumber, WithAdjacentFiles
-from fileformats.application import Gzip
 
 from .base import Biosig
 
@@ -22,26 +21,6 @@ class Eeg(Biosig):
     """Base class for all Electroencephalography recordings"""
 
     pass
-
-
-# ------------------------------
-# Implementation of Specific EEG Formats
-# ------------------------------
-class Fif(WithMagicNumber, BinaryFile, Biosig):
-    """
-    MNE FIF format (standard format for NeuroMag/MEGIN MEG/EEG devices)
-    Most commonly used binary format, supports compression (.fif.gz)
-    """
-
-    ext = ".fif"
-    # FIF file magic number (hex identifier, from MNE official documentation)
-    magic_number: str | bytes = b"\x46\x49\x46\x32"  # "FIF2"
-
-
-class FifGz(Gzip[Fif], Fif):  # type: ignore[type-arg, misc]
-    """Gzip-compressed MNE FIF format"""
-
-    ext = ".fif.gz"
 
 
 class Edf(WithMagicNumber, BinaryFile, Eeg):
@@ -116,7 +95,19 @@ class EdfPlus(Edf):
         return self._edf_type
 
 
-class BrainVisionHeader(WithMagicNumber, UnicodeFile, Biosig):
+class WithBrainVisionMagic:
+    """Checks the 'Brain Vision' magic string in text mode, handling optional BOM via utf-8-sig."""
+
+    @validated_property
+    def brain_vision_magic(self) -> None:
+        first_line = self.fspath.read_text(encoding="utf-8-sig").split("\n")[0]  # type: ignore[attr-defined]
+        if not first_line.startswith("Brain Vision"):
+            raise FormatMismatchError(
+                f"File does not start with 'Brain Vision' magic string: {self}"
+            )
+
+
+class BrainVisionHeader(WithBrainVisionMagic, UnicodeFile, Biosig):
     """
     BrainVision header file (.vhdr) — plain-text INI file describing channel
     configuration, sampling rate, amplifier settings, and references to the
@@ -124,19 +115,15 @@ class BrainVisionHeader(WithMagicNumber, UnicodeFile, Biosig):
     """
 
     ext = ".vhdr"
-    # First 12 bytes of "Brain Vision Data Exchange Header File Version 1.0\r\n"
-    magic_number = b"Brain Vision"
 
 
-class BrainVisionMarker(WithMagicNumber, UnicodeFile, Biosig):
+class BrainVisionMarker(WithBrainVisionMagic, UnicodeFile, Biosig):
     """
     BrainVision marker file (.vmrk) — plain-text INI file containing event
     markers and annotations time-stamped to samples in the data file.
     """
 
     ext = ".vmrk"
-    # First 12 bytes of "Brain Vision Data Exchange Marker File, Version 1.0\r\n"
-    magic_number = b"Brain Vision"
 
 
 class BrainVision(WithAdjacentFiles, BinaryFile, Biosig):
