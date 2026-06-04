@@ -56,7 +56,10 @@ def fif_path(sample_data_path: Path) -> Path:
 
 @pytest.fixture(scope="session")
 def edf_plus_path() -> Path:
-    return Path(mne.datasets.eegbci.load_data(subjects=1, runs=[1])[0])
+    try:
+        return Path(mne.datasets.eegbci.load_data(subjects=1, runs=[1])[0])
+    except Exception as e:
+        pytest.skip(f"EEGBCI data unavailable (physionet.org unreachable?): {e}")
 
 
 @pytest.fixture(scope="session")

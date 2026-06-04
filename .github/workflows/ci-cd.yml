@@ -59,7 +59,11 @@ jobs:
       if: steps.cache-mne-data.outputs.cache-hit != 'true'
       run: |
         mkdir -p $HOME/mne_data
-        python -c "import mne; mne.datasets.testing.data_path(); mne.datasets.sample.data_path(); mne.datasets.eegbci.load_data(subjects=1, runs=[1], update_path=True)"
+        python -c "import mne; mne.datasets.testing.data_path(); mne.datasets.sample.data_path()"
+    - name: Download EEGBCI data
+      if: steps.cache-mne-data.outputs.cache-hit != 'true'
+      continue-on-error: true
+      run: python -c "import mne; mne.datasets.eegbci.load_data(subjects=1, runs=[1], update_path=True)"
     # - name: MyPy
     #   run: mypy --install-types --non-interactive  --no-warn-unused-ignores .
     - name: Pytest
