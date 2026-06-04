@@ -50,6 +50,7 @@ jobs:
     - name: Install Package
       run: python3 -m pip install -e .[test] -e ./extras[test]
     - name: Cache MNE datasets
+      id: cache-mne-data
       uses: actions/cache@v4
       with:
         path: ~/mne_data
@@ -57,8 +58,9 @@ jobs:
         restore-keys: |
           mne-data-
     - name: Download MNE datasets
+      if: steps.cache-mne-data.outputs.cache-hit != 'true'
       run: |
-        mkdir $HOME/mne_data
+        mkdir -p $HOME/mne_data
         python -c "import mne; mne.datasets.testing.data_path(); mne.datasets.sample.data_path(); mne.datasets.eegbci.load_data(subjects=1, runs=[1], update_path=True)"
     # - name: MyPy
     #   run: mypy --install-types --non-interactive  --no-warn-unused-ignores .
