@@ -40,7 +40,7 @@ jobs:
     - name: Install system deps
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y liblzma-dev tree
+        sudo apt-get install -y liblzma-dev
     - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
       uses: actions/setup-python@v2
       with:
@@ -66,8 +66,6 @@ jobs:
       run: python -c "import mne; mne.datasets.eegbci.load_data(subjects=1, runs=[1], update_path=True)"
     # - name: MyPy
     #   run: mypy --install-types --non-interactive  --no-warn-unused-ignores .
-    - name: Contents of test data directory
-      run: tree ~/mne_data
     - name: Pytest
       run: pytest -vvs --cov fileformats --cov-config .coveragerc --cov-report xml .
     - name: Upload coverage to Codecov
