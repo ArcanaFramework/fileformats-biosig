@@ -64,7 +64,7 @@ def edf_plus_path() -> Path:
 
 @pytest.fixture(scope="session")
 def bv_vhdr_path(testing_data_path: Path) -> Path:
-    return testing_data_path / "BrainVision" / "test_NO.vhdr"
+    return testing_data_path / "Brainvision" / "test_NO.vhdr"
 
 
 @pytest.fixture(scope="session")
