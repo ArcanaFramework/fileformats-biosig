@@ -28,7 +28,7 @@ jobs:
       MNE_DATA: ~/mne_data
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v6
     - name: Unset header
       # checkout@v2 adds a header that makes branch protection report errors
       # because the Github action bot is not a collaborator on the repo
@@ -42,7 +42,7 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install -y liblzma-dev
     - name: Set up Python ${{ matrix.python-version }} on ${{ matrix.os }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Update build tools
@@ -51,7 +51,7 @@ jobs:
       run: python3 -m pip install -e .[test] -e ./extras[test]
     - name: Cache MNE datasets
       id: cache-mne-data
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/mne_data
         key: mne-data-${{ hashFiles('**/requirements*.txt', '**/pyproject.toml') }}
@@ -69,7 +69,7 @@ jobs:
     - name: Pytest
       run: pytest -vvs --cov fileformats --cov-config .coveragerc --cov-report xml .
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
@@ -83,7 +83,7 @@ jobs:
           - ["main", "."]
           - ["extras", "./extras"]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
         fetch-depth: 0
@@ -92,7 +92,7 @@ jobs:
       # because the Github action bot is not a collaborator on the repo
       run: git config --local --unset http.https://github.com/.extraheader
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
         python-version: '3.12'
     - name: Install build tools
@@ -111,7 +111,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download build
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: built-main
         path: dist
@@ -133,7 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Download build
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: built-extras
         path: dist
