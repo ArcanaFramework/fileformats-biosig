@@ -35,3 +35,19 @@ class Biosig(FileSet):
             were stripped/modified during the deidentification process.
         """
         raise NotImplementedError
+
+
+class Eeg(Biosig):
+    """Base class for all Electroencephalography recordings"""
+
+    pass
+
+
+# ------------------------------
+# Base MEG Type (Abstract Class)
+# ------------------------------
+class Meg(Biosig):
+    """
+    Base class for MEG data formats
+    All specific MEG formats inherit from this class with unified validation logic
+    """
