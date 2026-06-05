@@ -10,26 +10,10 @@ Email:
 - miaocao@swin.edu.au
 """
 
-from .base import Biosig
-from .eeg import (
-    Eeg,
+from .base import Biosig, Eeg, Meg
+from .edf import (
     Edf,
     EdfPlus,
-    BrainVisionHeader,
-    BrainVisionMarker,
-    BrainVision,
-)
-from .meg import (
-    Meg,
-    CtfMeg4,
-    CtfRes4,
-    CtfInfo,
-    Ctf,
-    Fif,
-    KitMark,
-    KitHeadPosition,
-    KitSensorInfo,
-    Kit,
 )
 
 from ._version import __version__
@@ -38,20 +22,7 @@ __all__ = [
     "__version__",
     "Biosig",
     "Eeg",
-    "Fif",
-    "FifGz",
     "Edf",
     "EdfPlus",
-    "BrainVisionHeader",
-    "BrainVisionMarker",
-    "BrainVision",
     "Meg",
-    "CtfMeg4",
-    "CtfRes4",
-    "CtfInfo",
-    "Ctf",
-    "KitMark",
-    "KitHeadPosition",
-    "KitSensorInfo",
-    "Kit",
 ]
