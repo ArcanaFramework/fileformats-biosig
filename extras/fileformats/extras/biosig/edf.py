@@ -35,15 +35,15 @@ def edf_deidentify(
     edf: Edf,
     spec: ty.Any = None,
     out_dir: os.PathLike[str] | None = None,
-) -> tuple[Edf, dict[str, ty.Any]]:
+    **kwargs: ty.Any,
+) -> Edf:
     out_dir = Path(tempfile.mkdtemp() if out_dir is None else out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     raw = mne.io.read_raw_edf(edf, preload=True, verbose=False)
-    deidentified_info, reid = mne_deidentify(raw, spec)
-    raw.info = deidentified_info
+    raw.info = mne_deidentify(raw, spec)
     deid_fspath = out_dir / "eeg.edf"
     mne.export.export_raw(deid_fspath, raw, fmt="edf", overwrite=True)
-    return type(edf)(deid_fspath), reid
+    return type(edf)(deid_fspath)
 
 
 def _parse_edf_header(path: os.PathLike[str]) -> dict[str, ty.Any]:
