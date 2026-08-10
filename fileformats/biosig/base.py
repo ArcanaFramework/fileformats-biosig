@@ -1,5 +1,6 @@
-import typing as ty
 import os
+import typing as ty
+
 from fileformats.core import FileSet, extra
 
 
@@ -9,8 +10,8 @@ class Biosig(FileSet):
     @extra
     def deidentify(
         self,
+        out_dir: os.PathLike[str],
         spec: ty.Any = None,
-        out_dir: os.PathLike[str] | None = None,
         **kwargs: ty.Any,
     ) -> ty.Self:
         """
@@ -26,6 +27,8 @@ class Biosig(FileSet):
 
         Parameters
         ----------
+        out_dir: PathLike[str]
+            The directory where the deidentified dataset should be saved
         spec: Any, optional
             A specification for the deidentification process, which may include details on
             which fields to remove or how to handle certain types of data. The exact
