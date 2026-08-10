@@ -1,12 +1,11 @@
 import os
 import typing as ty
-import tempfile
 from pathlib import Path
 
-import mne.io
 import mne.export
+import mne.io
+from fileformats.core import FileSet, extra_implementation
 
-from fileformats.core import extra_implementation, FileSet
 from fileformats.biosig import Biosig, Edf, EdfPlus
 
 from .utils import mne_deidentify
@@ -33,11 +32,11 @@ def edf_plus_read_metadata(edf: EdfPlus, **kwargs: ty.Any) -> ty.Mapping[str, ty
 @extra_implementation(Biosig.deidentify)
 def edf_deidentify(
     edf: Edf,
+    out_dir: os.PathLike[str],
     spec: ty.Any = None,
-    out_dir: os.PathLike[str] | None = None,
     **kwargs: ty.Any,
 ) -> Edf:
-    out_dir = Path(tempfile.mkdtemp() if out_dir is None else out_dir)
+    out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     raw = mne.io.read_raw_edf(edf, preload=True, verbose=False)
     raw.info = mne_deidentify(raw, spec)
